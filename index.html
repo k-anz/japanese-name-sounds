@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>名前の音は男女を越えるか</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="明治安田生命「生まれ年別の名前調査」2007〜2025年の読み方ベスト50から、男女両方で使われる名前の読みを調べたページ">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Old+Mincho:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: 読み物の1カラム（本文 ~40字）。図だけ少し広げ、ヒートマップは横スクロール枠に入れる */
+:root{
+  --paper:#f6f6f2; --surface:#fcfcfa; --ink:#1c2422; --ink-2:#4b5552; --ink-3:#77807c;
+  --rule:#d9dcd5; --accent:#2c5b55;
+  /* 女の子の割合（発散・5段階）。男女の固定観念の青／ピンクを避け、緑青と琥珀を両極に置く */
+  --d0:#17706b; --d1:#7dbab2; --d2:#e6e3db; --d3:#e8b46f; --d4:#a85f1c;
+  --hatch:#9aa29d; --bar:#2c5b55;
+  --f-display:"Zen Old Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --f-data:"IBM Plex Mono",ui-monospace,"SFMono-Regular",monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#141816; --surface:#1b201e; --ink:#e7eae5; --ink-2:#b9c0bb; --ink-3:#8d9590;
+  --rule:#323a37; --accent:#8fcac1;
+  --d0:#4fb7ac; --d1:#2f6c66; --d2:#3b3f3c; --d3:#8c6026; --d4:#e5a052;
+  --hatch:#6f7873; --bar:#7fbfb6; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --paper:#141816; --surface:#1b201e; --ink:#e7eae5; --ink-2:#b9c0bb; --ink-3:#8d9590;
+  --rule:#323a37; --accent:#8fcac1;
+  --d0:#4fb7ac; --d1:#2f6c66; --d2:#3b3f3c; --d3:#8c6026; --d4:#e5a052;
+  --hatch:#6f7873; --bar:#7fbfb6; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.85;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0}
+.wrap{max-width:720px;margin:0 auto;padding-block:56px 80px}
+.wide{max-width:960px;margin-inline:auto}
+h1,h2{font-family:var(--f-display);font-weight:700;text-wrap:balance;letter-spacing:.02em}
+h1{font-size:clamp(2rem,6vw,3rem);line-height:1.3;margin:.2em 0 .5em}
+h2{font-size:1.5rem;line-height:1.45;margin:0 0 .6em}
+p{margin:0 0 1em}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.kicker{font-size:.8rem;letter-spacing:.08em;color:var(--ink-2)}
+.lede{font-size:1.06rem;color:var(--ink-2)}
+.num{font-family:var(--f-data);font-variant-numeric:tabular-nums}
+section{margin-top:72px}
+.findings{list-style:none;padding:0;margin:32px 0 0;display:grid;gap:0;border-top:1px solid var(--rule)}
+.findings li{display:grid;grid-template-columns:1fr;gap:4px;padding:16px 0;border-bottom:1px solid var(--rule)}
+.findings b{font-family:var(--f-display);font-size:1.3rem;line-height:1.5}
+.findings span{color:var(--ink-2);min-width:0}
+@media (max-width:520px){.findings li{grid-template-columns:1fr;gap:2px}}
+.note{font-size:.86rem;color:var(--ink-3);line-height:1.7}
+figure{margin:24px 0 0}
+figcaption{font-size:.86rem;color:var(--ink-2);margin-top:8px}
+
+/* 棒グラフ */
+.chart{background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:16px 12px 8px}
+.chart svg{display:block;width:100%;height:auto}
+.chart text{fill:var(--ink-3);font-family:var(--f-data);font-size:11px}
+.chart .gridline{stroke:var(--rule);stroke-width:1}
+.chart .bar{fill:var(--bar)}
+.chart .hit{fill:transparent;cursor:default}
+.chart .hit:hover+.bar,.chart .bar.on{opacity:.75}
+.chart .label{fill:var(--ink);font-size:12px}
+
+/* ヒートマップ */
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;font-size:.82rem;color:var(--ink-2);margin:0 0 12px}
+.scale{display:flex;align-items:center;gap:6px}
+.scale .sw{display:grid;grid-template-columns:repeat(5,44px);gap:2px}
+.scale .sw i{height:14px;border-radius:2px}
+.scale .ticks{display:grid;grid-template-columns:repeat(5,44px);gap:2px;font-family:var(--f-data);font-size:.7rem;color:var(--ink-3);text-align:center}
+.key{display:flex;align-items:center;gap:6px}
+.key i{width:14px;height:14px;border-radius:2px;display:inline-block}
+.scroller{overflow-x:auto;-webkit-overflow-scrolling:touch;background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:12px}
+.heat{display:grid;grid-template-columns:4.2rem repeat(19,minmax(26px,1fr));gap:2px;min-width:620px;font-size:.8rem}
+.heat .yr{font-family:var(--f-data);font-size:.68rem;color:var(--ink-3);text-align:center;align-self:end}
+.heat .rd{font-weight:500;align-self:center;white-space:nowrap}
+.heat .c{height:30px;border-radius:3px}
+.c.b0{background:var(--d0)}.c.b1{background:var(--d1)}.c.b2{background:var(--d2)}.c.b3{background:var(--d3)}.c.b4{background:var(--d4)}
+.c.wide{background:repeating-linear-gradient(45deg,var(--hatch) 0 2px,transparent 2px 5px);box-shadow:inset 0 0 0 1px var(--hatch)}
+.c.out{background:transparent;box-shadow:inset 0 0 0 1px var(--rule)}
+.c:hover,.c:focus{box-shadow:inset 0 0 0 2px var(--ink)}
+.c.out:hover,.c.out:focus{box-shadow:inset 0 0 0 2px var(--ink-3)}
+.keyi.wide{background:repeating-linear-gradient(45deg,var(--hatch) 0 2px,transparent 2px 5px);box-shadow:inset 0 0 0 1px var(--hatch)}
+.keyi.out{box-shadow:inset 0 0 0 1px var(--ink-3)}
+
+/* ツールチップ */
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--surface);color:var(--ink);border:1px solid var(--rule);
+  border-radius:6px;padding:8px 10px;font-size:.8rem;line-height:1.6;box-shadow:0 4px 16px rgba(0,0,0,.12);max-width:260px}
+#tip .t{font-weight:700}
+#tip .r{display:flex;justify-content:space-between;gap:16px}
+#tip .m{color:var(--ink-3)}
+
+/* アオイの表記 */
+.kanji{display:grid;gap:0;border-top:1px solid var(--rule);margin-top:20px}
+.kanji .row{display:grid;grid-template-columns:4rem 1fr 1fr;gap:12px;padding:14px 0;border-bottom:1px solid var(--rule);align-items:baseline}
+.kanji .hd{font-size:.78rem;color:var(--ink-3);letter-spacing:.06em;padding:8px 0}
+.kanji .y{font-family:var(--f-data);color:var(--ink-2)}
+.kanji ol{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 16px;min-width:0}
+.kanji li{font-family:var(--f-display);font-size:1.45rem;line-height:1.3}
+.kanji li small{font-family:var(--f-data);font-size:.68rem;color:var(--ink-3);margin-right:3px;vertical-align:.35em}
+.kanji li.top{color:var(--accent)}
+
+.chart .ln{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.chart .dot{stroke:var(--surface);stroke-width:2}
+.chart .xh{stroke:var(--ink-3);stroke-width:1;stroke-dasharray:2 3}
+.explore{border-top:1px solid var(--rule);padding-top:40px}
+.explore .kicker{margin-bottom:6px}
+.ends{display:grid;grid-template-columns:1fr 1fr;gap:16px 32px;margin-top:16px}
+@media (max-width:520px){.ends{grid-template-columns:1fr}}
+.ends table{width:100%}
+.ends caption{text-align:left;font-family:var(--f-body);font-size:.85rem;color:var(--ink-2);padding-bottom:4px}
+.ends td:first-child{font-family:var(--f-display);font-size:1.05rem}
+/* 表 */
+details{margin-top:16px}
+summary{cursor:pointer;color:var(--accent);font-size:.9rem}
+.tbl{overflow-x:auto;margin-top:10px}
+table{border-collapse:collapse;font-size:.76rem;font-family:var(--f-data);font-variant-numeric:tabular-nums}
+th,td{padding:4px 6px;border-bottom:1px solid var(--rule);text-align:right;white-space:nowrap}
+th{color:var(--ink-2);font-weight:500}
+th:first-child,td:first-child{text-align:left;font-family:var(--f-body)}
+dl.method{display:grid;grid-template-columns:7rem 1fr;gap:10px 16px;margin:0}
+dl.method dt{color:var(--ink-2);font-size:.9rem}
+dl.method dd{margin:0;min-width:0}
+@media (max-width:520px){dl.method{grid-template-columns:1fr;gap:2px}dl.method dd{margin-bottom:10px}}
+.files{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:.9rem}
+footer{margin-top:72px;padding-top:16px;border-top:1px solid var(--rule);font-size:.82rem;color:var(--ink-3)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="kicker">明治安田生命「生まれ年別の名前調査」2007–2025年の読み方ベスト50より</div>
+  <h1>名前の音は男女を越えるか</h1>
+  <p class="lede">アメリカでは、Ashley や Kelly のように、男の子の名前だったものが女の子の名前に移った例がたくさんあります。日本の赤ちゃんの名前の「読み」ではどうなのかを、19年分の読み方ランキングで調べました。</p>
+  <ul class="findings">
+    <li><b>男女で分け合う読みは8つ</b><span>男の子と女の子でほぼ同じくらい使われた年がある読みは、ヒナタ、アオイ、ハルなど8つありました。いちばん長く分け合われてきたのはヒナタです。</span></li>
+    <li><b>男女を移った読みはない</b><span>Ashley のように、男の子の名前から女の子の名前へ、またはその逆へ移った読みは、19年間で1つもありませんでした。</span></li>
+    <li><b>男の子の名前が短くなった</b><span>リクやハルのような2拍の読みは、2018年ごろまで男の子の15%前後でしたが、2023年以降は約40%です。女の子は前から約半分なので、男の子の名前の長さが女の子に近づいています。</span></li>
+  </ul>
+</header>
+
+<section>
+  <h2>男女で分け合われる読み</h2>
+  <p>男の子と女の子の両方のランキング（読み方ベスト50）に入る読みは、2013年までは毎年1〜2個で、ほぼヒナタだけでした。2021年以降にセナ、オト、スイ、ナギ、リオなどが加わり、2024年と2025年は8個になっています。増えてはいますが、男女のベスト50を合わせた約100の読みのうちの8つです。</p>
+  <p>下の図は、両方のランキングに一度でも入ったことがある10の読みについて、その読みの赤ちゃんのうち女の子が何%かを年ごとに色で表したものです。男女で調査人数が違う分はならしてあります。片方のランキングに入らなかった年は割合が幅でしかわからないため、幅が大きすぎる年は斜線にしました。</p>
+  <div class="wide">
+    <div class="legend" aria-hidden="true">
+      <div class="scale"><span>男の子寄り</span>
+        <div><div class="sw"><i class="c b0"></i><i class="c b1"></i><i class="c b2"></i><i class="c b3"></i><i class="c b4"></i></div>
+        <div class="ticks"><span>0–20</span><span>20–40</span><span>40–60</span><span>60–80</span><span>80–100</span></div></div>
+        <span>女の子寄り</span></div>
+      <span class="key"><i class="keyi wide"></i>割合がはっきりしない</span>
+      <span class="key"><i class="keyi out"></i>男女ともランキング外</span>
+    </div>
+    <div class="scroller"><div class="heat" id="heat" role="grid" aria-label="読みごと・年ごとの女の子の割合"></div></div>
+    <details><summary>数値の表で見る</summary><div class="tbl" id="tbl"></div></details>
+  </div>
+  <p style="margin-top:24px"><b>ヒナタ</b>は、2008年から2023年まで、ほぼ毎年40〜55%の間にありました。19年でいちばん長く男女で分け合われてきた読みです。2024年と2025年はどちらも約30%で、ここ2年は男の子寄りになっています。2012年だけ69%ですが、この年は男の子19人、女の子41人と人数が少なく、1年だけの振れです。</p>
+  <p><b>アオイ</b>は、2011年には女の子が7割を超えていましたが、最近はほぼ半々です。<b>ハル</b>は30〜42%で、男の子のほうが多い状態が続いています。<b>レイ</b>は両方に入った年はいずれも約50%、<b>ソラ</b>は約30%でした。<b>セナ</b>、<b>オト</b>、<b>リオ</b>、<b>スイ</b>、<b>ナギ</b>は両方に入るようになってまだ数年です。</p>
+  <p>一方で、Ashley や Kelly のように、男の子の名前だった読みが女の子の名前になる（またはその逆の）動きは、ランキングに入った233の読みのどれにも見られませんでした。人気の読みだけ、19年間だけのデータなので、今後どうなるかまではわかりません。</p>
+</section>
+
+<section>
+  <h2>アオイは音を分け合い、漢字で分かれる</h2>
+  <p>同じアオイでも、男の子と女の子では使われる漢字が違います。読み方ランキングの上位10位には、その読みでよく使われた表記の上位3つが載っていて、男女ともアオイが上位10位に入った3年分を並べると、女の子は3年とも「葵」が1位でした。男の子は2016年は「葵」でしたが、2020年と2022年は「蒼」が1位です。</p>
+  <div class="kanji" id="kanji">
+    <div class="row hd"><span>年</span><span>男の子のアオイ</span><span>女の子のアオイ</span></div>
+  </div>
+  <p class="note" style="margin-top:10px">順位のみで、表記ごとの人数は公表されていません。同じ順位の表記は「葵衣・碧」のようにまとめています。</p>
+</section>
+
+<section>
+  <h2>男の子の名前が短くなっている</h2>
+  <p>リク、ハル、サクのような2拍の読みは、2018年ごろまで男の子の15%前後でしたが、2019年から増え始め、2023年以降は約40%になりました。女の子は前から2拍が半分前後で、2025年は64%でした。男の子の名前の長さが、女の子の名前に近づいてきています。</p>
+  <figure class="wide">
+    <div class="chart" id="linechart" role="img" aria-label="読み方ベスト50のうち2拍の読みの割合。男の子は2007〜2018年に12〜19%、2019年22%、2021年28%、2023年39%、2025年40%。女の子は43〜64%の間"></div>
+    <div class="legend" style="margin-top:10px"><span class="key"><i style="background:var(--d0)"></i>男の子</span><span class="key"><i style="background:var(--d4)"></i>女の子</span></div>
+    <figcaption>ランキングに入った読みのうち、2拍の読みの赤ちゃんの割合。年にカーソルを合わせると値が表示されます。</figcaption>
+  </figure>
+  <p>新しく男女で分け合われるようになったセナ、オト、スイ、ナギ、リオ、レイは、どれも2拍です。ただ、こうした読みを除いても、男の子の2拍は2007〜2011年の17%から2021〜2025年の31%に増えています。男の子の名前全体が短くなっています。</p>
+
+  <h2 style="margin-top:48px">語尾の男女差は残っている</h2>
+  <p>最後の音を見ると、女の子に多い「ナ」終わりや、男の子に多い「タ」終わりは減りました。その一方で、男の子の「ト」終わり（ハルト、ミナト、アオトなど）は増えています。分け合われる読みを除くと、語尾の男女の重なり方は19年でほとんど変わっておらず、語尾で男の子か女の子かを見分けやすいことは今も同じです。</p>
+  <div class="ends" id="ends"></div>
+  <p class="note">2007〜2011年と2021〜2025年の5年ずつをまとめた割合。それぞれ多い語尾の上位5つ。</p>
+</section>
+
+<section>
+  <h2>データについて</h2>
+  <dl class="method">
+    <dt>出典</dt><dd>明治安田生命「生まれ年別の名前調査」のニュースリリース（2007〜2025年生まれ分）の「名前の読み方ベスト50」。日本には政府による名前の統計がありません。</dd>
+    <dt>調査人数</dt><dd>同社の個人保険・個人年金保険の契約者の子どもで、各年・各性別 <span class="num">3,222</span>〜<span class="num">9,796</span>人です。全出生（2007年は約109万人、2024年は約69万人）のごく一部です。</dd>
+    <dt>対象の範囲</dt><dd>ランキングに入った読みは、各年の調査人数の4割前後です。ランキング外の読みの傾向は、このページには含まれていません。</dd>
+    <dt>女の子の割合</dt><dd>男女それぞれ「その読みの人数 ÷ 調査人数」を出してから、女の子の値が男女の合計に占める割合を求めました。</dd>
+    <dt>拍の数え方</dt><dd>ャ・ュ・ョなどの小さい文字は前の文字と合わせて1拍、ン・ッ・ーはそれぞれ1拍と数えました。</dd>
+  </dl>
+  <p class="files" style="margin-top:20px">
+    <a href="docs/methodology.md">集計方法の詳細</a>
+    <a href="data/sample_sizes.json">調査人数（JSON）</a>
+  </p>
+</section>
+
+<footer>
+  データ：明治安田生命保険相互会社「生まれ年別の名前調査」。参考：Ogihara, Y. (2020). Baby names in Japan, 2004–2018: common writings and their readings. <i>BMC Research Notes</i>, 13, 553.（データセット：OSF, DOI 10.17605/OSF.IO/2WURJ）
+</footer>
+</div>
+<div id="tip" hidden></div>
+
+<script>
+const D = {"years":[2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025],"N":{"2007":[4591,4204],"2008":[4621,4275],"2009":[4595,4254],"2010":[4078,3805],"2011":[3648,3503],"2012":[3388,3222],"2013":[5338,5026],"2014":[3481,3273],"2015":[4278,4122],"2016":[8947,8509],"2017":[8300,8030],"2018":[9796,9481],"2019":[8455,8407],"2020":[9172,8825],"2021":[8637,8501],"2022":[8952,8561],"2023":[6957,6951],"2024":[7308,7017],"2025":[6312,6193]},"cut":{"2007F":19,"2007M":19,"2008F":19,"2008M":19,"2009F":19,"2009M":19,"2010F":16,"2010M":16,"2011F":17,"2011M":14,"2012F":14,"2012M":14,"2013F":23,"2013M":23,"2014F":14,"2014M":15,"2015F":19,"2015M":16,"2016F":40,"2016M":37,"2017F":37,"2017M":36,"2018F":42,"2018M":41,"2019F":36,"2019M":37,"2020F":39,"2020M":42,"2021F":34,"2021M":36,"2022F":36,"2022M":38,"2023F":30,"2023M":28,"2024F":29,"2024M":31,"2025F":27,"2025M":28},"both":{"2007":["ソラ","ヒナタ"],"2008":["ヒナタ"],"2009":["ヒナタ"],"2010":["ヒナタ"],"2011":["アオイ","ヒナタ"],"2012":["ヒナタ"],"2013":["ヒナタ"],"2014":["アオイ","ハル","ヒナタ"],"2015":["アオイ","ヒナタ"],"2016":["アオイ","ハル","ヒナタ"],"2017":["アオイ","ヒナタ"],"2018":["アオイ","ハル","ヒナタ"],"2019":["アオイ","ハル","ヒナタ","レイ"],"2020":["アオイ","ハル","ヒナタ"],"2021":["アオイ","セナ","ハル","ヒナタ"],"2022":["アオイ","セナ","ソラ","ヒナタ","レイ"],"2023":["アオイ","オト","スイ","セナ","ハル","ヒナタ","リオ"],"2024":["アオイ","オト","セナ","ナギ","ハル","ヒナタ","リオ","レイ"],"2025":["アオイ","オト","スイ","セナ","ナギ","ハル","ヒナタ","リオ"]},"rows":["ヒナタ","アオイ","ハル","セナ","オト","リオ","レイ","スイ","ソラ","ナギ"],"cells":{"アオイ":[{"y":2007,"m":null,"f":49,"mr":null,"fr":6,"lo":0.7483,"hi":1.0,"st":"too_wide"},{"y":2008,"m":null,"f":49,"mr":null,"fr":7,"lo":0.7464,"hi":1.0,"st":"too_wide"},{"y":2009,"m":null,"f":31,"mr":null,"fr":22,"lo":0.6504,"hi":1.0,"st":"too_wide"},{"y":2010,"m":null,"f":38,"mr":null,"fr":12,"lo":0.7308,"hi":1.0,"st":"too_wide"},{"y":2011,"m":15,"f":39,"mr":46,"fr":7,"lo":0.7303,"hi":0.7303,"st":"ok"},{"y":2012,"m":null,"f":25,"mr":null,"fr":18,"lo":0.6691,"hi":1.0,"st":"too_wide"},{"y":2013,"m":null,"f":66,"mr":null,"fr":3,"lo":0.7611,"hi":1.0,"st":"too_wide"},{"y":2014,"m":31,"f":37,"mr":16,"fr":8,"lo":0.5594,"hi":0.5594,"st":"ok"},{"y":2015,"m":27,"f":57,"mr":32,"fr":3,"lo":0.6866,"hi":0.6866,"st":"ok"},{"y":2016,"m":82,"f":113,"mr":9,"fr":6,"lo":0.5917,"hi":0.5917,"st":"ok"},{"y":2017,"m":73,"f":86,"mr":14,"fr":10,"lo":0.5491,"hi":0.5491,"st":"ok"},{"y":2018,"m":76,"f":109,"mr":19,"fr":7,"lo":0.5971,"hi":0.5971,"st":"ok"},{"y":2019,"m":70,"f":87,"mr":16,"fr":12,"lo":0.5555,"hi":0.5555,"st":"ok"},{"y":2020,"m":111,"f":84,"mr":6,"fr":10,"lo":0.4403,"hi":0.4403,"st":"ok"},{"y":2021,"m":79,"f":75,"mr":15,"fr":17,"lo":0.491,"hi":0.491,"st":"ok"},{"y":2022,"m":95,"f":95,"mr":8,"fr":7,"lo":0.5112,"hi":0.5112,"st":"ok"},{"y":2023,"m":76,"f":55,"mr":8,"fr":17,"lo":0.4201,"hi":0.4201,"st":"ok"},{"y":2024,"m":71,"f":80,"mr":13,"fr":6,"lo":0.5399,"hi":0.5399,"st":"ok"},{"y":2025,"m":49,"f":55,"mr":18,"fr":13,"lo":0.5336,"hi":0.5336,"st":"ok"}],"オト":[{"y":2007,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2008,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2009,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2010,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2011,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2012,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2013,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2014,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2015,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2016,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2017,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2018,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2019,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2020,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2021,"m":null,"f":44,"mr":null,"fr":35,"lo":0.5609,"hi":1.0,"st":"too_wide"},{"y":2022,"m":null,"f":37,"mr":null,"fr":47,"lo":0.5112,"hi":1.0,"st":"too_wide"},{"y":2023,"m":30,"f":43,"mr":47,"fr":29,"lo":0.5892,"hi":0.5892,"st":"ok"},{"y":2024,"m":31,"f":41,"mr":49,"fr":32,"lo":0.5794,"hi":0.5794,"st":"ok"},{"y":2025,"m":31,"f":50,"mr":42,"fr":16,"lo":0.6218,"hi":0.6218,"st":"ok"}],"スイ":[{"y":2007,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2008,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2009,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2010,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2011,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2012,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2013,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2014,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2015,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2016,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2017,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2018,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2019,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2020,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2021,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2022,"m":null,"f":43,"mr":null,"fr":36,"lo":0.5486,"hi":1.0,"st":"too_wide"},{"y":2023,"m":35,"f":61,"mr":39,"fr":12,"lo":0.6356,"hi":0.6356,"st":"ok"},{"y":2024,"m":null,"f":78,"mr":null,"fr":7,"lo":0.7303,"hi":1.0,"st":"too_wide"},{"y":2025,"m":32,"f":87,"mr":38,"fr":3,"lo":0.7348,"hi":0.7348,"st":"ok"}],"セナ":[{"y":2007,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2008,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2009,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2010,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2011,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2012,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2013,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2014,"m":null,"f":14,"mr":null,"fr":50,"lo":0.5154,"hi":1.0,"st":"too_wide"},{"y":2015,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2016,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2017,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2018,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2019,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2020,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2021,"m":38,"f":52,"mr":44,"fr":26,"lo":0.5816,"hi":0.5816,"st":"ok"},{"y":2022,"m":50,"f":43,"mr":34,"fr":36,"lo":0.4735,"hi":0.4735,"st":"ok"},{"y":2023,"m":49,"f":37,"mr":25,"fr":37,"lo":0.4304,"hi":0.4304,"st":"ok"},{"y":2024,"m":64,"f":59,"mr":15,"fr":15,"lo":0.4898,"hi":0.4898,"st":"ok"},{"y":2025,"m":79,"f":48,"mr":4,"fr":19,"lo":0.3824,"hi":0.3824,"st":"ok"}],"ソラ":[{"y":2007,"m":49,"f":21,"mr":10,"fr":39,"lo":0.3188,"hi":0.3188,"st":"ok"},{"y":2008,"m":42,"f":null,"mr":12,"fr":null,"lo":0.0,"hi":0.3166,"st":"too_wide"},{"y":2009,"m":57,"f":null,"mr":6,"fr":null,"lo":0.0,"hi":0.2543,"st":"too_wide"},{"y":2010,"m":36,"f":null,"mr":15,"fr":null,"lo":0.0,"hi":0.3087,"st":"too_wide"},{"y":2011,"m":30,"f":null,"mr":13,"fr":null,"lo":0.0,"hi":0.3571,"st":"too_wide"},{"y":2012,"m":35,"f":null,"mr":9,"fr":null,"lo":0.0,"hi":0.2809,"st":"too_wide"},{"y":2013,"m":57,"f":null,"mr":5,"fr":null,"lo":0.0,"hi":0.2907,"st":"too_wide"},{"y":2014,"m":31,"f":null,"mr":16,"fr":null,"lo":0.0,"hi":0.3084,"st":"too_wide"},{"y":2015,"m":31,"f":null,"mr":22,"fr":null,"lo":0.0,"hi":0.376,"st":"too_wide"},{"y":2016,"m":50,"f":null,"mr":32,"fr":null,"lo":0.0,"hi":0.4506,"st":"too_wide"},{"y":2017,"m":61,"f":null,"mr":22,"fr":null,"lo":0.0,"hi":0.3789,"st":"too_wide"},{"y":2018,"m":77,"f":null,"mr":18,"fr":null,"lo":0.0,"hi":0.3549,"st":"too_wide"},{"y":2019,"m":53,"f":null,"mr":29,"fr":null,"lo":0.0,"hi":0.3991,"st":"too_wide"},{"y":2020,"m":83,"f":null,"mr":14,"fr":null,"lo":0.0,"hi":0.3224,"st":"too_wide"},{"y":2021,"m":100,"f":null,"mr":4,"fr":null,"lo":0.0,"hi":0.2511,"st":"too_wide"},{"y":2022,"m":88,"f":37,"mr":12,"fr":47,"lo":0.3054,"hi":0.3054,"st":"ok"},{"y":2023,"m":78,"f":null,"mr":7,"fr":null,"lo":0.0,"hi":0.2712,"st":"too_wide"},{"y":2024,"m":80,"f":null,"mr":7,"fr":null,"lo":0.0,"hi":0.2671,"st":"too_wide"},{"y":2025,"m":71,"f":null,"mr":8,"fr":null,"lo":0.0,"hi":0.2718,"st":"too_wide"}],"ナギ":[{"y":2007,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2008,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2009,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2010,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2011,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2012,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2013,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2014,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2015,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2016,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2017,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2018,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2019,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2020,"m":null,"f":39,"mr":null,"fr":48,"lo":0.4971,"hi":1.0,"st":"too_wide"},{"y":2021,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2022,"m":46,"f":null,"mr":39,"fr":null,"lo":0.0,"hi":0.4431,"st":"too_wide"},{"y":2023,"m":45,"f":null,"mr":28,"fr":null,"lo":0.0,"hi":0.3921,"st":"too_wide"},{"y":2024,"m":51,"f":48,"mr":20,"fr":26,"lo":0.495,"hi":0.495,"st":"ok"},{"y":2025,"m":54,"f":35,"mr":14,"fr":36,"lo":0.3978,"hi":0.3978,"st":"ok"}],"ハル":[{"y":2007,"m":28,"f":null,"mr":26,"fr":null,"lo":0.0,"hi":0.4125,"st":"too_wide"},{"y":2008,"m":22,"f":null,"mr":38,"fr":null,"lo":0.0,"hi":0.4693,"st":"too_wide"},{"y":2009,"m":24,"f":null,"mr":38,"fr":null,"lo":0.0,"hi":0.4476,"st":"too_wide"},{"y":2010,"m":24,"f":null,"mr":30,"fr":null,"lo":0.0,"hi":0.4011,"st":"too_wide"},{"y":2011,"m":21,"f":null,"mr":31,"fr":null,"lo":0.0,"hi":0.4424,"st":"too_wide"},{"y":2012,"m":27,"f":null,"mr":15,"fr":null,"lo":0.0,"hi":0.3361,"st":"too_wide"},{"y":2013,"m":52,"f":null,"mr":10,"fr":null,"lo":0.0,"hi":0.31,"st":"too_wide"},{"y":2014,"m":38,"f":20,"mr":13,"fr":33,"lo":0.3589,"hi":0.3589,"st":"ok"},{"y":2015,"m":42,"f":null,"mr":11,"fr":null,"lo":0.0,"hi":0.3079,"st":"too_wide"},{"y":2016,"m":73,"f":40,"mr":16,"fr":50,"lo":0.3655,"hi":0.3655,"st":"ok"},{"y":2017,"m":70,"f":null,"mr":17,"fr":null,"lo":0.0,"hi":0.3471,"st":"too_wide"},{"y":2018,"m":65,"f":44,"mr":24,"fr":42,"lo":0.4116,"hi":0.4116,"st":"ok"},{"y":2019,"m":79,"f":51,"mr":12,"fr":29,"lo":0.3937,"hi":0.3937,"st":"ok"},{"y":2020,"m":72,"f":51,"mr":19,"fr":32,"lo":0.424,"hi":0.424,"st":"ok"},{"y":2021,"m":80,"f":45,"mr":14,"fr":33,"lo":0.3637,"hi":0.3637,"st":"ok"},{"y":2022,"m":99,"f":null,"mr":7,"fr":null,"lo":0.0,"hi":0.2699,"st":"too_wide"},{"y":2023,"m":71,"f":33,"mr":11,"fr":42,"lo":0.3175,"hi":0.3175,"st":"ok"},{"y":2024,"m":75,"f":31,"mr":11,"fr":44,"lo":0.3009,"hi":0.3009,"st":"ok"},{"y":2025,"m":62,"f":35,"mr":12,"fr":36,"lo":0.3652,"hi":0.3652,"st":"ok"}],"ヒナタ":[{"y":2007,"m":23,"f":34,"mr":36,"fr":21,"lo":0.6175,"hi":0.6175,"st":"ok"},{"y":2008,"m":43,"f":29,"mr":11,"fr":23,"lo":0.4216,"hi":0.4216,"st":"ok"},{"y":2009,"m":40,"f":31,"mr":14,"fr":22,"lo":0.4557,"hi":0.4557,"st":"ok"},{"y":2010,"m":28,"f":23,"mr":22,"fr":36,"lo":0.4682,"hi":0.4682,"st":"ok"},{"y":2011,"m":23,"f":22,"mr":20,"fr":29,"lo":0.499,"hi":0.499,"st":"ok"},{"y":2012,"m":19,"f":41,"mr":28,"fr":5,"lo":0.6941,"hi":0.6941,"st":"ok"},{"y":2013,"m":48,"f":46,"mr":13,"fr":14,"lo":0.5044,"hi":0.5044,"st":"ok"},{"y":2014,"m":39,"f":28,"mr":10,"fr":18,"lo":0.433,"hi":0.433,"st":"ok"},{"y":2015,"m":45,"f":36,"mr":9,"fr":16,"lo":0.4536,"hi":0.4536,"st":"ok"},{"y":2016,"m":75,"f":58,"mr":12,"fr":27,"lo":0.4485,"hi":0.4485,"st":"ok"},{"y":2017,"m":78,"f":60,"mr":9,"fr":25,"lo":0.4429,"hi":0.4429,"st":"ok"},{"y":2018,"m":91,"f":56,"mr":9,"fr":30,"lo":0.3887,"hi":0.3887,"st":"ok"},{"y":2019,"m":58,"f":71,"mr":21,"fr":17,"lo":0.5518,"hi":0.5518,"st":"ok"},{"y":2020,"m":90,"f":60,"mr":12,"fr":25,"lo":0.4093,"hi":0.4093,"st":"ok"},{"y":2021,"m":91,"f":62,"mr":9,"fr":20,"lo":0.4091,"hi":0.4091,"st":"ok"},{"y":2022,"m":89,"f":79,"mr":11,"fr":13,"lo":0.4814,"hi":0.4814,"st":"ok"},{"y":2023,"m":67,"f":48,"mr":13,"fr":24,"lo":0.4176,"hi":0.4176,"st":"ok"},{"y":2024,"m":86,"f":34,"mr":5,"fr":42,"lo":0.2917,"hi":0.2917,"st":"ok"},{"y":2025,"m":76,"f":32,"mr":5,"fr":39,"lo":0.3003,"hi":0.3003,"st":"ok"}],"リオ":[{"y":2007,"m":null,"f":46,"mr":null,"fr":9,"lo":0.7362,"hi":1.0,"st":"too_wide"},{"y":2008,"m":null,"f":47,"mr":null,"fr":8,"lo":0.7384,"hi":1.0,"st":"too_wide"},{"y":2009,"m":null,"f":58,"mr":null,"fr":4,"lo":0.7768,"hi":1.0,"st":"too_wide"},{"y":2010,"m":null,"f":56,"mr":null,"fr":3,"lo":0.8,"hi":1.0,"st":"ok"},{"y":2011,"m":null,"f":42,"mr":null,"fr":3,"lo":0.7709,"hi":1.0,"st":"too_wide"},{"y":2012,"m":null,"f":46,"mr":null,"fr":2,"lo":0.7882,"hi":1.0,"st":"too_wide"},{"y":2013,"m":null,"f":64,"mr":null,"fr":4,"lo":0.7555,"hi":1.0,"st":"too_wide"},{"y":2014,"m":null,"f":40,"mr":null,"fr":5,"lo":0.7524,"hi":1.0,"st":"too_wide"},{"y":2015,"m":null,"f":41,"mr":null,"fr":12,"lo":0.7394,"hi":1.0,"st":"too_wide"},{"y":2016,"m":null,"f":120,"mr":null,"fr":4,"lo":0.778,"hi":1.0,"st":"too_wide"},{"y":2017,"m":null,"f":99,"mr":null,"fr":7,"lo":0.7451,"hi":1.0,"st":"too_wide"},{"y":2018,"m":null,"f":91,"mr":null,"fr":13,"lo":0.7015,"hi":1.0,"st":"too_wide"},{"y":2019,"m":null,"f":83,"mr":null,"fr":13,"lo":0.6987,"hi":1.0,"st":"too_wide"},{"y":2020,"m":null,"f":77,"mr":null,"fr":16,"lo":0.6612,"hi":1.0,"st":"too_wide"},{"y":2021,"m":null,"f":81,"mr":null,"fr":13,"lo":0.7016,"hi":1.0,"st":"too_wide"},{"y":2022,"m":null,"f":78,"mr":null,"fr":15,"lo":0.6879,"hi":1.0,"st":"too_wide"},{"y":2023,"m":38,"f":73,"mr":35,"fr":7,"lo":0.6579,"hi":0.6579,"st":"ok"},{"y":2024,"m":33,"f":66,"mr":44,"fr":11,"lo":0.6756,"hi":0.6756,"st":"ok"},{"y":2025,"m":37,"f":46,"mr":33,"fr":22,"lo":0.5589,"hi":0.5589,"st":"ok"}],"レイ":[{"y":2007,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2008,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2009,"m":19,"f":null,"mr":48,"fr":null,"lo":0.0,"hi":0.5058,"st":"too_wide"},{"y":2010,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2011,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2012,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2013,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2014,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2015,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2016,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2017,"m":null,"f":38,"mr":null,"fr":49,"lo":0.5288,"hi":1.0,"st":"too_wide"},{"y":2018,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2019,"m":40,"f":43,"mr":42,"fr":39,"lo":0.5195,"hi":0.5195,"st":"ok"},{"y":2020,"m":48,"f":null,"mr":37,"fr":null,"lo":0.0,"hi":0.4514,"st":"too_wide"},{"y":2021,"m":48,"f":null,"mr":34,"fr":null,"lo":0.0,"hi":0.4112,"st":"too_wide"},{"y":2022,"m":49,"f":47,"mr":37,"fr":34,"lo":0.5007,"hi":0.5007,"st":"ok"},{"y":2023,"m":null,"f":null,"mr":null,"fr":null,"lo":null,"hi":null,"st":"both_out"},{"y":2024,"m":31,"f":30,"mr":49,"fr":45,"lo":0.502,"hi":0.502,"st":"ok"},{"y":2025,"m":30,"f":null,"mr":46,"fr":null,"lo":0.0,"hi":0.469,"st":"too_wide"}]},"shared":["アオイ","オト","セナ","ナギ","ハル","ヒナタ","リオ","レイ"],"n_readings":233,"mora":{"two":{"M":[17.0,16.6,19.4,15.5,16.5,12.5,15.4,16.7,13.9,13.4,14.0,17.6,21.7,20.3,28.2,29.0,38.8,39.1,40.3],"F":[50.3,49.2,50.9,55.9,52.5,50.9,47.1,53.8,49.7,46.2,42.8,47.2,51.1,50.9,51.8,53.7,55.6,55.4,63.9]},"end":{"M":[["ト",26,33],["キ",16,11],["タ",15,8],["イ",8,9],["マ",7,5]],"F":[["ナ",22,16],["イ",10,11],["カ",12,9],["オ",8,6],["リ",6,7]]},"coverage":[0.3746,0.4362],"overlap":{"2007":0.3576,"2008":0.301,"2009":0.3252,"2010":0.3007,"2011":0.3182,"2012":0.3047,"2013":0.2786,"2014":0.3337,"2015":0.2923,"2016":0.2566,"2017":0.2737,"2018":0.2812,"2019":0.2976,"2020":0.3535,"2021":0.3759,"2022":0.4193,"2023":0.4384,"2024":0.3976,"2025":0.4467}}};
+const AOI = [
+  {y:2016, m:["葵","碧海","蒼生"], f:["葵","碧","あおい"]},
+  {y:2020, m:["蒼","葵","碧"], f:["葵","葵衣","蒼依"]},
+  {y:2022, m:["蒼","葵","碧"], f:["葵","蒼依","葵衣・碧"]},
+];
+const tip = document.getElementById('tip');
+function showTip(html, x, y){
+  tip.innerHTML = html; tip.hidden = false;
+  const r = tip.getBoundingClientRect(), pad = 12;
+  let left = x + 14, top = y + 14;
+  if (left + r.width > innerWidth - pad) left = x - r.width - 14;
+  if (top + r.height > innerHeight - pad) top = y - r.height - 14;
+  tip.style.left = Math.max(pad, left) + 'px'; tip.style.top = Math.max(pad, top) + 'px';
+}
+function hideTip(){ tip.hidden = true; }
+function pct(v){ return Math.round(v*100) + '%'; }
+function el(tag, attrs={}, text){ const e=document.createElement(tag); for(const k in attrs) e.setAttribute(k, attrs[k]); if(text!=null) e.textContent=text; return e; }
+
+/* 折れ線グラフ（2拍の割合） */
+function drawLines(){
+  const host=document.getElementById('linechart'); if(!host) return; host.textContent='';
+  const ys=D.years, S=D.mora.two;
+  const W=Math.max(320,host.clientWidth-24), H=240, L=40, R=40, T=16, B=26, max=70;
+  const bw=(W-L-R)/(ys.length-1), x=i=>L+i*bw, sy=v=>T+(H-T-B)*(1-v/max);
+  const ns='http://www.w3.org/2000/svg', svg=document.createElementNS(ns,'svg'); svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const mk=(t,a)=>{const e=document.createElementNS(ns,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
+  [0,20,40,60].forEach(v=>{svg.appendChild(mk('line',{x1:L,x2:W-R,y1:sy(v),y2:sy(v),class:'gridline'}));
+    const t=mk('text',{x:L-8,y:sy(v)+4,'text-anchor':'end'}); t.textContent=v+'%'; svg.appendChild(t);});
+  ys.forEach((y,i)=>{ if((W>=600?i%3===0:i%6===0)||i===ys.length-1){const t=mk('text',{x:x(i),y:H-8,'text-anchor':'middle'}); t.textContent=y; svg.appendChild(t);} });
+  const xh=mk('line',{y1:T,y2:sy(0),class:'xh',visibility:'hidden'}); svg.appendChild(xh);
+  [['M','var(--d0)'],['F','var(--d4)']].forEach(([k,c])=>{
+    svg.appendChild(mk('path',{class:'ln',stroke:c,d:S[k].map((v,i)=>(i?'L':'M')+x(i)+','+sy(v)).join(' ')}));
+    const last=S[k].length-1;
+    svg.appendChild(mk('circle',{cx:x(last),cy:sy(S[k][last]),r:4,fill:c,class:'dot'}));
+    const t=mk('text',{x:x(last)+8,y:sy(S[k][last])+4,class:'label'}); t.textContent=Math.round(S[k][last])+'%'; svg.appendChild(t);
+  });
+  ys.forEach((y,i)=>{
+    const hit=mk('rect',{x:x(i)-bw/2,y:T,width:bw,height:sy(0)-T,class:'hit',tabindex:0,'aria-label':`${y}年 男の子${S.M[i]}% 女の子${S.F[i]}%`});
+    const on=e=>{ xh.setAttribute('x1',x(i)); xh.setAttribute('x2',x(i)); xh.setAttribute('visibility','visible');
+      showTip(`<div class="t">${y}年</div><div class="r"><span>男の子</span><span>${S.M[i].toFixed(1)}%</span></div><div class="r"><span>女の子</span><span>${S.F[i].toFixed(1)}%</span></div>`, e.clientX, e.clientY); };
+    const off=()=>{ xh.setAttribute('visibility','hidden'); hideTip(); };
+    hit.addEventListener('pointermove',on); hit.addEventListener('pointerleave',off);
+    hit.addEventListener('focus',()=>{const b=hit.getBoundingClientRect(); on({clientX:b.left+b.width/2,clientY:b.top+30});}); hit.addEventListener('blur',off);
+    svg.appendChild(hit);
+  });
+  host.appendChild(svg);
+}
+drawLines();
+let rz; addEventListener('resize',()=>{clearTimeout(rz); rz=setTimeout(drawLines,150);});
+
+/* 語尾の表 */
+(function(){
+  const box=document.getElementById('ends');
+  [['M','男の子'],['F','女の子']].forEach(([k,name])=>{
+    const t=el('table'); t.appendChild(el('caption',{},name+'の語尾'));
+    const h=el('tr'); ['語尾','2007〜11年','2021〜25年'].forEach(v=>h.appendChild(el('th',{},v)));
+    const th=el('thead'); th.appendChild(h); t.appendChild(th);
+    const tb=el('tbody'); D.mora.end[k].forEach(([m,a,b])=>{const tr=el('tr'); tr.appendChild(el('td',{},m)); tr.appendChild(el('td',{},a+'%')); tr.appendChild(el('td',{},b+'%')); tb.appendChild(tr);});
+    t.appendChild(tb); box.appendChild(t);
+  });
+})();
+
+/* ヒートマップと表 */
+(function(){
+  const heat=document.getElementById('heat'), ys=D.years;
+  heat.appendChild(el('div'));
+  ys.forEach((y,i)=>heat.appendChild(el('div',{class:'yr'}, (i%3===0||i===ys.length-1)? y : "'"+String(y).slice(2))));
+  const bin=v=> v<0.2?0 : v<0.4?1 : v<=0.6?2 : v<=0.8?3 : 4;
+  function side(c,sex){
+    const n = c[sex], r = c[sex+'r'], cut = D.cut[c.y+(sex==='m'?'M':'F')];
+    return n!=null ? `${n}人（${r}位）` : `ランキング外（${cut}人未満）`;
+  }
+  function describe(rd,c){
+    let s = `<div class="t">${rd}　${c.y}年</div>`;
+    if(c.st==='both_out') return s+`<div class="m">男女ともランキング外</div>`;
+    s += `<div class="r"><span>男の子</span><span>${side(c,'m')}</span></div><div class="r"><span>女の子</span><span>${side(c,'f')}</span></div>`;
+    const range = Math.abs(c.hi-c.lo)<0.005 ? pct(c.lo) : `${pct(c.lo)}〜${pct(c.hi)}`;
+    s += `<div class="r"><span>女の子の割合</span><span>${range}</span></div>`;
+    if(c.st==='too_wide') s += `<div class="m">片方がランキング外で、割合の幅が大きい</div>`;
+    return s;
+  }
+  D.rows.forEach(rd=>{
+    heat.appendChild(el('div',{class:'rd'},rd));
+    D.cells[rd].forEach(c=>{
+      let cls='c out', label=`${rd} ${c.y}年 男女ともランキング外`;
+      if(c.st==='ok'){ const mid=(c.lo+c.hi)/2; cls='c b'+bin(mid); label=`${rd} ${c.y}年 女の子の割合 ${pct(mid)}`; }
+      else if(c.st==='too_wide'){ cls='c wide'; label=`${rd} ${c.y}年 割合がはっきりしない`; }
+      const d=el('div',{class:cls,tabindex:0,role:'gridcell','aria-label':label});
+      const on=e=>showTip(describe(rd,c), e.clientX, e.clientY);
+      d.addEventListener('pointermove',on); d.addEventListener('pointerleave',hideTip);
+      d.addEventListener('focus',()=>{const b=d.getBoundingClientRect(); showTip(describe(rd,c), b.right, b.bottom);}); d.addEventListener('blur',hideTip);
+      heat.appendChild(d);
+    });
+  });
+  // 表
+  const t=el('table'), hr=el('tr'); hr.appendChild(el('th',{},'読み')); ys.forEach(y=>hr.appendChild(el('th',{},y)));
+  const th=el('thead'); th.appendChild(hr); t.appendChild(th); const tb=el('tbody');
+  D.rows.forEach(rd=>{ const tr=el('tr'); tr.appendChild(el('td',{},rd));
+    D.cells[rd].forEach(c=>{ let v='—'; if(c.st==='ok'){v=pct((c.lo+c.hi)/2)} else if(c.st==='too_wide'){v=`(${pct(c.lo)}–${pct(c.hi)})`} tr.appendChild(el('td',{},v)); });
+    tb.appendChild(tr); });
+  t.appendChild(tb); const tbl=document.getElementById('tbl'); tbl.appendChild(t);
+  tbl.appendChild(el('p',{class:'note'},'—：男女ともランキング外。括弧内：割合がはっきりしない年の幅。'));
+})();
+
+/* アオイの表記 */
+(function(){
+  const box=document.getElementById('kanji');
+  AOI.forEach(a=>{
+    const row=el('div',{class:'row'}); row.appendChild(el('span',{class:'y'},a.y));
+    ['m','f'].forEach(s=>{ const ol=el('ol');
+      a[s].forEach((k,i)=>{ const li=el('li',{class: k==='葵'?'top':''}); const sm=el('small',{},(i+1)+'位'); li.appendChild(sm); li.appendChild(document.createTextNode(k)); ol.appendChild(li); });
+      row.appendChild(ol); });
+    box.appendChild(row);
+  });
+})();
+</script>
+</body>
+</html>
